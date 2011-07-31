@@ -1,1 +1,7 @@
 Cavetube用の棒読みちゃん連携や投稿スクリプト練習です。
+
+bouyomi_2.rb / bouyomi_em_socket.rb
+・これが最新。コメントの番号よみ、名前よみ、メッセージを同期的に読む方法を模索中
+
+cavetube_post_test.rb
+・文字コードの問題で入力コンソールがUTF-8じゃないと化けます
