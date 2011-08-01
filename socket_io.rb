@@ -4,34 +4,15 @@ require 'eventmachine'
 require 'em-http-request'
 
 class MySocketIO
-  attr_reader :room_no
+  attr_accessor :on_open, :on_error, :receive_data, :receive_json, :disconnected
   
   def initialize(uri, port)
     @uri = uri
     @port = port
-    @on_open = nil
     @http
-    @receive_data_action = nil
-    @receive_json_action = nil
-    @disconnected_action = nil
+    @on_error = ->{$stderr.print "errorback"}
   end
   
-  # set action
-  def on_open=(op)
-    @on_open = op
-  end
-  
-  def receive_data=(da)
-    @receive_data_action = da
-  end
-  
-  def receive_json=(ja)
-    @receive_json_action = ja
-  end
-  
-  def disconnected=(dis)
-    @disconnected_action = dis
-  end
   
   def send(data)
     @http.send(data)
@@ -46,13 +27,9 @@ class MySocketIO
         EM.next_tick do
           @http = EventMachine::HttpRequest.new("ws://#{@uri}:#{@port}/socket.io/1/websocket/#{sid}").get :timeout => 0
           
-          @http.errback do
-            $stderr.print "errorback"
-          end
+          @http.errback &@on_error
           
-          @http.callback do
-            @on_open.call
-          end
+          @http.callback &@on_open
           
           @http.stream do |msg|
             case msg
@@ -62,17 +39,15 @@ class MySocketIO
               when /\A2::/
                 send("2::")
               when /\A3:::(.+)/
-                @receive_data_action.call($1)
+                @receive_data.call($1)
               when /\A4:[^:]*:[^:]*:(.+)/
-                @receive_json_action.call($1)
+                @receive_json.call($1)
               else
                 puts "else"
             end
           end
           
-          @http.disconnect do
-            @disconnected_action.call
-          end
+          @http.disconnect &@disconnected
         end
       end
     end

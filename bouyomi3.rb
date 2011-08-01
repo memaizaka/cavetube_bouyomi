@@ -5,7 +5,7 @@ require_relative 'bouyomi_em_socket'
 
 require 'json'
 
-room_no = '75E009893DB64B03A68EF778AAC7FD24'
+room_no = '85FC5A5DD06D4863B7C385DAFDE4F646'
 b = BouyomiSocket.new
 wb = MySocketIO.new('ws.cavelis.net', 3000)
 
