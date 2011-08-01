@@ -5,8 +5,16 @@ require_relative 'bouyomi_em_socket'
 
 require 'json'
 
+room_no = '75E009893DB64B03A68EF778AAC7FD24'
 b = BouyomiSocket.new
-wb = MySocketIO.new('75E009893DB64B03A68EF778AAC7FD24')
+wb = MySocketIO.new('ws.cavelis.net', 3000)
+
+wb.on_open = Proc.new do
+  puts "WebSocket Connected!"
+  $stderr.print "WebSocket Connected!"
+  enter_room = {'mode'=>'join','room'=>room_no}.to_json
+  wb.send("3:::" + enter_room)
+end
 
 wb.receive_data = Proc.new do |data|
   res = JSON.parse(data)
@@ -21,7 +29,7 @@ wb.receive_data = Proc.new do |data|
   elsif res['mode'] == 'join' || res['mode'] == 'leave'
     # puts "#{res['mode']} RoomID => #{res['room']} id => #{res['id']}"
     puts "listener count => #{res['ipcount']}"
-  else res['mode'] == 'close_entry' && res['stream_name'] == wb.room_no
+  else res['mode'] == 'close_entry' && res['stream_name'] == room_no
     puts "close entry sign"
     b.talk("配信が終了しました")
     EM::stop

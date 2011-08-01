@@ -6,16 +6,21 @@ require 'em-http-request'
 class MySocketIO
   attr_reader :room_no
   
-  def initialize(room_no)
-    @room_no = room_no
-    @callback_action = nil
-    @errback_action = nil
+  def initialize(uri, port)
+    @uri = uri
+    @port = port
+    @on_open = nil
+    @http
     @receive_data_action = nil
     @receive_json_action = nil
     @disconnected_action = nil
   end
   
   # set action
+  def on_open=(op)
+    @on_open = op
+  end
+  
   def receive_data=(da)
     @receive_data_action = da
   end
@@ -28,33 +33,34 @@ class MySocketIO
     @disconnected_action = dis
   end
   
+  def send(data)
+    @http.send(data)
+  end
+  
   def run
     EM.run do
-      conn = EM::Protocols::HttpClient2.connect 'ws.cavelis.net', 3000
+      conn = EM::Protocols::HttpClient2.connect @uri, @port
       req = conn.get('/socket.io/1/')
       req.callback do |res|
         sid = res.content.split(/:/).first
         EM.next_tick do
-          http = EventMachine::HttpRequest.new("ws://ws.cavelis.net:3000/socket.io/1/websocket/#{sid}").get :timeout => 0
+          @http = EventMachine::HttpRequest.new("ws://#{@uri}:#{@port}/socket.io/1/websocket/#{sid}").get :timeout => 0
           
-          http.errback do
+          @http.errback do
             $stderr.print "errorback"
           end
           
-          http.callback do
-            puts "WebSocket Connected!"
-            $stderr.print "WebSocket Connected!"
-            enter_room = {'mode'=>'join','room'=>@room_no}.to_json
-            http.send("3:::" + enter_room)
+          @http.callback do
+            @on_open.call
           end
           
-          http.stream do |msg|
+          @http.stream do |msg|
             case msg
               when /\A0:/
-                http.send("0")
+                send("0")
               when /\A1:/
               when /\A2::/
-                http.send("2::")
+                send("2::")
               when /\A3:::(.+)/
                 @receive_data_action.call($1)
               when /\A4:[^:]*:[^:]*:(.+)/
@@ -64,7 +70,7 @@ class MySocketIO
             end
           end
           
-          http.disconnect do
+          @http.disconnect do
             @disconnected_action.call
           end
         end
