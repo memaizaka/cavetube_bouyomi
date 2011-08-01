@@ -5,3 +5,6 @@ bouyomi_2.rb / bouyomi_em_socket.rb
 
 cavetube_post_test.rb
 ・文字コードの問題で入力コンソールがUTF-8じゃないと化けます
+
+bouyomi3.rb / socket_io.rb / bouyomi_em_socket.rb
+・socket.ioの部分を分離してみました

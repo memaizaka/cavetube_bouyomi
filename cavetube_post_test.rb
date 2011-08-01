@@ -10,8 +10,9 @@ require 'em-http-request'
 require 'json'
 require 'kconv'
 
-# 暫定これでどうだ　だめだった
-p $stdin.set_encoding("Windows-31J", "UTF-8") if Encoding.default_external == "Windows-31J"
+# 暫定これでどうだ　だめだった　
+# Windows-31JでもASCII-8BIT判定されてるようなので強引に
+# $stdin.set_encoding("Windows-31J", "UTF-8") # if Encoding.default_external == "Windows-31J"
 
 class PostClient < EM::Connection
   include EM::P::LineText2
@@ -29,8 +30,8 @@ class PostClient < EM::Connection
   
   def receive_line(data)
     if @stream_name
-      p data.encoding #このdataはどっから来てるのか…
-      msg = {name:'from script', stream_name:@stream_name, message:data.toutf8}
+      p data #このdataはどっから来てるのか…
+      msg = {name:'', stream_name:@stream_name, message:data.toutf8}
       http = EM::HttpRequest.new('http://gae.cavelis.net/viewedit/postcomment').post :body => msg
       http.callback do
         res = JSON.parse http.response
@@ -42,7 +43,7 @@ class PostClient < EM::Connection
       end
       http.errback do
         #error対応なし
-        p http.response
+        p "Error: " + http.response
       end
     else
       @stream_name = data
