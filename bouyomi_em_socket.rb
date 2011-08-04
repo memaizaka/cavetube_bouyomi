@@ -8,6 +8,7 @@ class Bouyomi < EM::Connection
     @res << data
     close_connection_after_writing
   end
+  
 end
 
 class BouyomiSocket
