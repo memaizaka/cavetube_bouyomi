@@ -4,6 +4,7 @@ require_relative 'socket_io'
 require_relative 'bouyomi_em_socket'
 
 require 'json'
+$stderr.set_encoding(Encoding.locale_charmap, "UTF-8")
 
 room_no = ARGV.shift || '/'
 b = BouyomiSocket.new
@@ -36,14 +37,19 @@ wb.receive_data = Proc.new do |data|
         b.talk res['name'] + "さん" if res['name'].size > 0
         b.talk res['message']
       end.resume
-      $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message']
+      begin
+        $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message']
+      rescue =>e
+        $stderr.puts "文字に変換できないコードが含まれています : #{e.inspect}"
+        $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message'].encode("CP932", :invalid=>:replace, :undef => :replace)
+      end
     elsif res['mode'] == 'join' || res['mode'] == 'leave'
       # puts "#{res['mode']} RoomID => #{res['room']} id => #{res['id']}"
       puts "listener count => #{res['ipcount']}"
     else res['mode'] == 'close_entry' && res['stream_name'] == room_no
       $stderr.puts "close entry sign"
       b.talk("配信が終了しました")
-      EM::stop
+      EM::add_timer(1){EM::stop}
     end
   end
 end
