@@ -47,9 +47,13 @@ EventMachine::run do
           b.talk res['name'] + "さん" if res['name'].size > 0
           b.talk res['message']
         end.resume
-
-        $stderr.puts "#{res['comment_num']}: #{res['name'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)} : [#{Time.at(res['time']/1000).localtime}]"
-        $stderr.puts res['message'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)
+        if Encoding.locale_charmap != Encoding::UTF_8 && Encoding.locale_charmap != "CP0"
+          $stderr.puts "#{res['comment_num']}: #{res['name'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)} : [#{Time.at(res['time']/1000).localtime}]"
+          $stderr.puts res['message'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)
+        else
+          $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]"
+          $stderr.puts res['message']
+        end
       elsif res['mode'] == 'join' || res['mode'] == 'leave'
         # puts "#{res['mode']} RoomID => #{res['room']} id => #{res['id']}"
         puts "listener count => #{res['ipcount']}"
