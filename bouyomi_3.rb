@@ -39,11 +39,14 @@ wb.receive_data = Proc.new do |data|
     end
   else
     if res['mode'] == 'post'
+      # 順番に送りたい
+      #　現状たまに順番が狂う
       Fiber.new do
         b.talk "#{res['comment_num']}番"
         b.talk res['name'] + "さん" if res['name'].size > 0
         b.talk res['message']
       end.resume
+      
       begin
         $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message']
       rescue =>e
@@ -56,7 +59,7 @@ wb.receive_data = Proc.new do |data|
       # puts "#{res['mode']} RoomID => #{res['room']} id => #{res['id']}"
       puts "listener count => #{res['ipcount']}"
     else res['mode'] == 'close_entry' && res['stream_name'] == room_no
-      $stderr.puts "close entry sign"
+      $stderr.puts "close broadcast"
       b.talk("配信が終了しました")
       EM::add_timer(1){EM::stop}
     end

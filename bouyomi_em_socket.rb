@@ -6,7 +6,8 @@ class Bouyomi < EM::Connection
   attr_reader :res
   def receive_data(data)
     @res << data
-    close_connection_after_writing
+    # クライアント側では意味ない？
+    # close_connection_after_writing
   end
   
 end
