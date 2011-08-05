@@ -27,16 +27,16 @@ EventMachine::run do
       p res
       #　こっちはめんどくさいんで最初からエンコード
       unless Encoding.find("locale") == Encoding::ASCII_8BIT
-        name = res['name'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
+        author = res['author'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
         title = res['title'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
       end
       case res['mode']
       when 'start_entry'
         puts '新しい配信が始まりました。'
-        puts "#{name}さん : #{title}"
+        puts "#{author}さん : #{title}"
       when 'close_entry'
         puts '配信が終了しました'
-        puts "#{name}さん : #{title}"
+        puts "#{author}さん : #{title}"
       end
     else
       if res['mode'] == 'post'
