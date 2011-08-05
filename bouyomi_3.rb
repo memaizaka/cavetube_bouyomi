@@ -4,6 +4,7 @@ require_relative 'socket_io'
 require_relative 'bouyomi_em_socket'
 
 require 'json'
+
 unless Encoding.find("locale") == Encoding::ASCII_8BIT
   $stderr.puts Encoding.find("locale")
 end 
@@ -25,16 +26,16 @@ wb.receive_data = Proc.new do |data|
     p res
     #　こっちはめんどくさいんで最初からエンコード
     unless Encoding.find("locale") == Encoding::ASCII_8BIT
-      res['name'] = res['name'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
-      res['title'] = res['title'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
+      name = res['name'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
+      title = res['title'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
     end
     case res['mode']
     when 'start_entry'
       puts '新しい配信が始まりました。'
-      puts "#{res['name']}さん : #{res['title']}"
+      puts "#{name}さん : #{title}"
     when 'close_entry'
       puts '配信が終了しました'
-      puts "#{res['name']}さん : #{res['title']}"
+      puts "#{name}さん : #{title}"
     end
   else
     if res['mode'] == 'post'
@@ -48,7 +49,8 @@ wb.receive_data = Proc.new do |data|
       rescue =>e
         # 最初からencodeしちゃってもいいけどここに来るかテスト
         $stderr.puts "文字に変換できないコードが含まれています : #{e.inspect}"
-        $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)
+        $stderr.puts "#{res['comment_num']}: #{res['name'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)} : [#{Time.at(res['time']/1000).localtime}]"
+        $stderr.puts res['message'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)
       end
     elsif res['mode'] == 'join' || res['mode'] == 'leave'
       # puts "#{res['mode']} RoomID => #{res['room']} id => #{res['id']}"
