@@ -6,7 +6,6 @@ require_relative 'bouyomi_em_socket'
 require 'json'
 unless Encoding.find("locale") == Encoding::ASCII_8BIT
   $stderr.puts Encoding.find("locale")
-  $stderr.set_encoding(Encoding.locale_charmap, "UTF-8")
 end 
 
 room_no = ARGV.shift || '/'
@@ -24,7 +23,11 @@ wb.receive_data = Proc.new do |data|
   res = JSON.parse(data)
   if room_no == '/'
     p res
-    # puts "listener count : #{res['ipcount']}"
+    #　こっちはめんどくさいんで最初からエンコード
+    unless Encoding.find("locale") == Encoding::ASCII_8BIT
+      res['name'] = res['name'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
+      res['title'] = res['title'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
+    end
     case res['mode']
     when 'start_entry'
       puts '新しい配信が始まりました。'
@@ -43,6 +46,7 @@ wb.receive_data = Proc.new do |data|
       begin
         $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message']
       rescue =>e
+        # 最初からencodeしちゃってもいいけどここに来るかテスト
         $stderr.puts "文字に変換できないコードが含まれています : #{e.inspect}"
         $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)
       end
