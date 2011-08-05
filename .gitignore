@@ -2,3 +2,6 @@
 
 #zipファイル
 *.zip
+
+#projectファイル
+*.project
