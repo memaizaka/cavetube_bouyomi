@@ -47,15 +47,9 @@ EventMachine::run do
           b.talk res['name'] + "さん" if res['name'].size > 0
           b.talk res['message']
         end.resume
-        
-        begin
-          $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message']
-        rescue =>e
-          # 最初からencodeしちゃってもいいけどここに来るかテスト
-          $stderr.puts "文字に変換できないコードが含まれています : #{e.inspect}"
-          $stderr.puts "#{res['comment_num']}: #{res['name'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)} : [#{Time.at(res['time']/1000).localtime}]"
-          $stderr.puts res['message'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)
-        end
+
+        $stderr.puts "#{res['comment_num']}: #{res['name'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)} : [#{Time.at(res['time']/1000).localtime}]"
+        $stderr.puts res['message'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)
       elsif res['mode'] == 'join' || res['mode'] == 'leave'
         # puts "#{res['mode']} RoomID => #{res['room']} id => #{res['id']}"
         puts "listener count => #{res['ipcount']}"
