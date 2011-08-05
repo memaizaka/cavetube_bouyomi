@@ -4,7 +4,10 @@ require_relative 'socket_io'
 require_relative 'bouyomi_em_socket'
 
 require 'json'
-$stderr.set_encoding(Encoding.locale_charmap, "UTF-8")
+unless Encoding.find("locale") == Encoding::ASCII_8BIT
+  $stderr.puts Encoding.find("locale")
+  $stderr.set_encoding(Encoding.locale_charmap, "UTF-8")
+end 
 
 room_no = ARGV.shift || '/'
 b = BouyomiSocket.new
@@ -41,7 +44,7 @@ wb.receive_data = Proc.new do |data|
         $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message']
       rescue =>e
         $stderr.puts "文字に変換できないコードが含まれています : #{e.inspect}"
-        $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message'].encode("CP932", :invalid=>:replace, :undef => :replace)
+        $stderr.puts "#{res['comment_num']}: #{res['name']} : [#{Time.at(res['time']/1000).localtime}]", res['message'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)
       end
     elsif res['mode'] == 'join' || res['mode'] == 'leave'
       # puts "#{res['mode']} RoomID => #{res['room']} id => #{res['id']}"
