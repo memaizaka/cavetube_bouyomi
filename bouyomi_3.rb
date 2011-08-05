@@ -5,9 +5,9 @@ require_relative 'bouyomi_em_socket'
 
 require 'json'
 
-unless Encoding.find("locale") == Encoding::ASCII_8BIT
-  $stderr.puts Encoding.find("locale")
-end 
+#unless Encoding.find("locale") == Encoding::ASCII_8BIT
+#  $stderr.puts Encoding.find("locale")
+#end 
 
 room_no = ARGV.shift || '/'
 EventMachine::run do
@@ -16,25 +16,30 @@ EventMachine::run do
   
   wb.on_open = Proc.new do
     puts "WebSocket Connected!"
-    $stderr.puts "WebSocket Connected!"
+    # $stderr.puts "WebSocket Connected!"
     enter_room = {'mode'=>'join','room'=>room_no}.to_json
     wb.send("3:::" + enter_room)
+    puts "enter : #{room_no}"
   end
   
   wb.receive_data = Proc.new do |data|
     res = JSON.parse(data)
     if room_no == '/'
-      p res
-      #　こっちはめんどくさいんで最初からエンコード
-      unless Encoding.find("locale") == Encoding::ASCII_8BIT
-        author = res['author'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
-        title = res['title'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
-      end
       case res['mode']
+      when 'leave', 'join'
+        puts "listener count => #{res['ipcount']}"
       when 'start_entry'
+        unless Encoding.find("locale") == Encoding::ASCII_8BIT
+          author = res['author'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
+          title = res['title'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
+        end
         puts '新しい配信が始まりました。'
         puts "#{author}さん : #{title}"
       when 'close_entry'
+        unless Encoding.find("locale") == Encoding::ASCII_8BIT
+          author = res['author'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
+          title = res['title'].encode(Encoding.locale_charmap, :invalid => :replace, :undef => :replace)
+        end
         puts '配信が終了しました'
         puts "#{author}さん : #{title}"
       end
@@ -57,10 +62,10 @@ EventMachine::run do
       elsif res['mode'] == 'join' || res['mode'] == 'leave'
         # puts "#{res['mode']} RoomID => #{res['room']} id => #{res['id']}"
         puts "listener count => #{res['ipcount']}"
-      else res['mode'] == 'close_entry' && res['stream_name'] == room_no
+      elsif (res['mode'] == 'close_entry') && (res['stream_name'] == room_no)
         $stderr.puts "close broadcast"
         b.talk("配信が終了しました")
-        EM::add_timer(1){EM::stop}
+        EM::add_timer(5){EM::stop}
       end
     end
   end
