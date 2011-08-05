@@ -13,5 +13,5 @@ bouyomi3.rb / socket_io.rb / bouyomi_em_socket.rb
 ・これが最新
 ・socket.ioの部分を分離してみました
 ・使い方
-* ruby bouyomi_3.rb "stream_name"
-* stream_nameを入れないとTOPから配信の開始/終了情報を取ってくる
++$ ruby bouyomi_3.rb stream_name
++stream_nameを入れないとTOPから配信の開始/終了情報を取ってくる
