@@ -15,3 +15,8 @@ bouyomi3.rb / socket_io.rb / bouyomi_em_socket.rb
 + 使い方
     - $ ruby bouyomi_3.rb stream_name
     - stream_nameを入れないとTOPから配信の開始/終了情報を取ってくる
+    
+getcomment.rb
+--------------------------------------------------
++ コメントを棒読み子に読ませます
++ これ+bouyomi_3.rbを使えば全レス読んでくれる！

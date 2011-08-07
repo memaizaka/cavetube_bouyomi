@@ -1,5 +1,7 @@
 #coding:utf-8
-
+# 必要なgem
+# eventmachine 1.0.0.beta.3 x86-mingw32
+# em-http-request 0.3.0
 require_relative 'socket_io'
 require_relative 'bouyomi_em_socket'
 
@@ -47,10 +49,12 @@ EventMachine::run do
       if res['mode'] == 'post'
         # 順番に送りたい
         #　現状たまに順番が狂う
+        # まとめて送ってみる
         Fiber.new do
-          b.talk "#{res['comment_num']}番"
-          b.talk res['name'] + "さん" if res['name'].size > 0
-          b.talk res['message']
+          comment =  "#{res['comment_num']}番\n"
+          comment << res['name'] + "さん\n" if res['name'].size > 0
+          comment << res['message']
+          b.talk comment
         end.resume
         if Encoding.locale_charmap != Encoding::UTF_8 && Encoding.locale_charmap != "CP0"
           $stderr.puts "#{res['comment_num']}: #{res['name'].encode(Encoding.locale_charmap, :invalid=>:replace, :undef => :replace)} : [#{Time.at(res['time']/1000).localtime}]"
