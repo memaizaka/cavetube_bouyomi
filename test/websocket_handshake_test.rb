@@ -71,19 +71,12 @@ class WebSocketClient
     puts "sendkey size: #{sendkey.size}"
     puts "byte send key => %s" % sendkey
     skey  = Digest::MD5.digest(sendkey)
-    puts "sendkey after digest => #{skey}"
+    puts "sendkey after MD5digest => #{skey}"
     skeyh = Digest::MD5.hexdigest(sendkey)
     puts "skey in hexadecimal : %s" % skeyh
-    puts "rec_key in hexadecimal : %s" % rec_key[0..15].unpack("H*")
-    rest = rec_key[16..-1]
-    puts rest.unpack("H*") # what is this ?!
-    # 0x00 0x31 0x3a 0x3a 0xff 0x00 0x32 0x3a 0x3a 0xff
-    # 0x00 [data] 0xff がwebsocketのチャンク
-    #　"1::" "2::"
-    #　connect heartbeatがすぐにきてました。
-    # keep-aliveだからline == nilを停止条件にしてたらhandshake responseの次も取ってたらしい
+    puts "rec_key in hexadecimal : %s" % rec_key.unpack("H*")
     
-    if skey == rec_key[0..15]
+    if skey == rec_key
       "YES"
     else
       "NO"
@@ -135,9 +128,17 @@ end
 buf = ''
 wsc = WebSocketClient.new
 soc = wsc.open do |s|
-  until (line = s.recv(1024)) == ''
-    buf << line
-  end
+  loop {
+    c= s.read(1)
+    buf << c
+    # 0x00 0x31 0x3a 0x3a 0xffにマッチさせたいんだけど
+    # "\000\031\03a\03a\0ff" のバイナリにマッチってどうやるんだ・・・
+    connected = [0x00, 0x31, 0x3a, 0x3a, 0xff].pack("c*")
+    if buf =~ Regexp.new(connected)
+      buf = $`
+      break
+    end
+  }
   puts buf
   puts '-' * 25 + " check result " + '-' * 25
   buf =~ /[\n][\r]?[\n]/
@@ -148,4 +149,3 @@ if soc
   soc.puts("0")
   soc.close
 end
-
